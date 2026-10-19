@@ -145,6 +145,7 @@
     let id = select.value;
     fetchPostById(id).then(post => {
       answer.innerHTML = '';
+      console.table(post);
       writePostsToTable([post]);
     });
   })
