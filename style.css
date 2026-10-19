@@ -1,0 +1,16 @@
+html {
+  height: 100%;
+  width: 100%;
+}
+
+#table{
+  text-align:center;
+}
+
+#title{
+  color: red;
+}
+
+#body{
+  color: green;
+}
