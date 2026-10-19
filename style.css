@@ -14,3 +14,13 @@ html {
 #body{
   color: green;
 }
+
+#popup{
+  position: absolute;
+  color: blue;
+  padding: 20px;
+  background-color: red;
+  border-radius: 10px;
+  top: 2%;
+  left: calc(100% - 200px);
+}

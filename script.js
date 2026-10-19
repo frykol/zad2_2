@@ -7,13 +7,16 @@
   const status = document.getElementById('status')
   const table = document.getElementById('table')
   const tableBody = table.querySelector('tbody')
+  const popup = document.getElementById('popup');
+  popup.style.display = 'none';
 
   const select = document.getElementById('select');
 
   const form = document.getElementById('form');
 
-  form.addEventListener('submit', function (event) {
+  form.addEventListener('submit', async function (event) {
     event.preventDefault();
+    tableBody.replaceChildren();
     
     const formData = new FormData(form);
     const post = {
@@ -22,9 +25,8 @@
       userId: 1
     };
 
-    CreatePost(post).then(createdPost => {
+    const createdPost = await CreatePost(post);
       answer.innerHTML = 'Dodano nowy post o id: ' + createdPost.id + '<br>' + JSON.stringify(createdPost, null, 2);
-    });
   });
 
   for (let i = 0; i< 10; i++) {
@@ -39,7 +41,7 @@
 
   const updateStatus = () => {
     const messages = [];
-    if (isLoading) messages.push('Loading...');
+    popup.style.display = isLoading ? 'block' : 'none';
     if (isProcessing) messages.push('Processing...');
     status.textContent = messages.join(' ');
   }
@@ -56,63 +58,58 @@
 
   const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-  const fetchPosts = () => {
+  const fetchPosts = async () => {
     setLoading(true);
 
-    return fetch('https://jsonplaceholder.typicode.com/posts')
-      .then(response => response.json())
-      .then(async (array) => {
-        console.log(array)
-        await wait(1000);
-        return array;
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    try {
+      const response = await fetch('https://jsonplaceholder.typicode.com/posts');
+      const array = await response.json();
+      console.log(array);
+      await wait(1000);
+      return array;
+    } finally {
+      setLoading(false);
+    }
   }
 
-  const fetchPostById = (id) => {
+  const fetchPostById = async (id) => {
     setLoading(true);
 
-    return fetch(`https://jsonplaceholder.typicode.com/posts/${id}`)
-      .then(response => response.json())
-      .then(async (post) => {
-        console.log(post)
-        await wait(1000);
-        return post;
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    try {
+      const response = await fetch(`https://jsonplaceholder.typicode.com/posts/${id}`);
+      const post = await response.json();
+      console.log(post);
+      await wait(1000);
+      return post;
+    } finally {
+      setLoading(false);
+    }
   }
 
-  const CreatePost = (post) => {
+  const CreatePost = async (post) => {
     setProcessing(true);
 
-    return fetch(`https://jsonplaceholder.typicode.com/posts`, {
-      method: 'POST',
-      body: JSON.stringify(post),
-      headers: {
-        'Content-type': 'application/json; charset=UTF-8',
-      },
-    })
-      .then(response => response.json())
-      .then(async (post) => {
-        console.log(post)
-        await wait(1000);
-        return post;
-      })
-      .finally(() => {
-        setProcessing(false);
+    try {
+      const response = await fetch('https://jsonplaceholder.typicode.com/posts', {
+        method: 'POST',
+        body: JSON.stringify(post),
+        headers: {
+          'Content-type': 'application/json; charset=UTF-8',
+        },
       });
+      const createdPost = await response.json();
+      console.log(createdPost);
+      await wait(1000);
+      return createdPost;
+    } finally {
+      setProcessing(false);
+    }
   }
 
   const writePostsToTable = (posts) => {
     tableBody.replaceChildren();
     posts.forEach(post => {
       let newRow = document.createElement('tr');
-      tableBody.appendChild(newRow);
-      const row = tableBody.insertRow();
       [post.title, post.body, post.id, post.userId].forEach(value => {
         let newCell = document.createElement('td');
         if (value === post.title) {
@@ -124,33 +121,35 @@
         newRow.appendChild(newCell);
         newCell.textContent = value;
       });
+      tableBody.appendChild(newRow);
     });
     table.style.display = '';
   }
 
-  example.addEventListener("click", function () {
-    fetchPosts().then(array => {
-      answer.textContent = JSON.stringify(array, null, 2);
-    })
+  example.addEventListener("click", async function () {
+    tableBody.replaceChildren();
+    const array = await fetchPosts();
+    answer.textContent = JSON.stringify(array, null, 2);
   })
 
-  cw1.addEventListener("click", function () {
-    fetchPosts().then(array => {
-      answer.innerHTML = '';
-      writePostsToTable(array);
-    });
+  cw1.addEventListener("click", async function () {
+    tableBody.replaceChildren();
+    const array = await fetchPosts();
+    answer.innerHTML = '';
+    writePostsToTable(array);
   })
 
-  cw2.addEventListener("click", function () {
+  cw2.addEventListener("click", async function () {
+    tableBody.replaceChildren();
     let id = select.value;
-    fetchPostById(id).then(post => {
-      answer.innerHTML = '';
-      console.table(post);
-      writePostsToTable([post]);
-    });
+    const post = await fetchPostById(id);
+    answer.innerHTML = '';
+    console.table(post);
+    writePostsToTable([post]);
   })
 
   cw3.addEventListener("click", function () {
+    tableBody.replaceChildren();
     //TODO
   })
 
